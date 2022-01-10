@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>贪吃蛇小游戏</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .header {
+        text-align: center;
+      }
+      .header span {
+        color: red;
+      }
+      .btn {
+        text-align: center;
+        margin: 10px;
+      }
+      .btn button {
+        width: 30px;
+        height: 30px;
+        margin: 0 10px;
+        /* border: 1px solid red; */
+
+        border-radius: 5px;
+      }
+      .map {
+        width: 500px;
+        height: 500px;
+        background-color: rgba(1, 2, 3, 0.5);
+        position: relative;
+        margin: 0 auto;
+      }
+      .map div {
+        width: 50px;
+        height: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>贪吃蛇</h1>
+      <h2>得分：<span id="fs">0</span>分</h2>
+    </div>
+    <div class="btn">
+      <button onclick="changeSpeed('250')">快</button>
+      <button onclick="changeSpeed('500')">中</button>
+      <button onclick="changeSpeed('1000')">慢</button>
+    </div>
+    <div class="map"></div>
+  </body>
+  <script>
+    // 创建蛇头及食物
+    var map = document.getElementsByClassName("map")[0];
+    var bodyNodes = [];
+    var index = 0;
+    function createDiv(color) {
+      var div = document.createElement("div");
+      div.style.width = "50px";
+      div.style.height = "50px";
+      div.style.position = "absolute";
+      div.style.left = parseInt(Math.random() * 10) * 50 + "px";
+      div.style.top = parseInt(Math.random() * 10) * 50 + "px";
+      div.style.backgroundColor = color;
+      map.appendChild(div);
+      return div;
+    }
+
+    // 创建蛇
+    var headNode = createDiv("red");
+    headNode.value = "左";
+    var foodNode = createDiv("blue");
+    // 分数
+    var fs = document.getElementById("fs");
+    function score() {
+      index += 10;
+      fs.innerHTML = index;
+    }
+
+    // 蛇头移动
+    function move() {
+      if (bodyNodes.length > 0) {
+        for (var i = bodyNodes.length - 1; i >= 0; i--) {
+          switch (bodyNodes[i].value) {
+            case "左":
+              bodyNodes[i].style.left =
+                parseInt(bodyNodes[i].style.left) - 50 + "px";
+              break;
+            case "右":
+              bodyNodes[i].style.left =
+                parseInt(bodyNodes[i].style.left) + 50 + "px";
+              break;
+            case "上":
+              bodyNodes[i].style.top =
+                parseInt(bodyNodes[i].style.top) - 50 + "px";
+              break;
+            case "下":
+              bodyNodes[i].style.top =
+                parseInt(bodyNodes[i].style.top) + 50 + "px";
+              break;
+          }
+          if (i == 0) {
+            bodyNodes[i].value = headNode.value;
+          } else {
+            bodyNodes[i].value = bodyNodes[i - 1].value;
+          }
+        }
+      }
+      switch (headNode.value) {
+        case "左":
+          headNode.style.left = parseInt(headNode.style.left) - 50 + "px";
+          break;
+        case "右":
+          headNode.style.left = parseInt(headNode.style.left) + 50 + "px";
+          break;
+        case "上":
+          headNode.style.top = parseInt(headNode.style.top) - 50 + "px";
+          break;
+        case "下":
+          headNode.style.top = parseInt(headNode.style.top) + 50 + "px";
+          break;
+      }
+      // 撞墙死
+      if (
+        parseInt(headNode.style.left) < 0 ||
+        parseInt(headNode.style.left) > 450 ||
+        parseInt(headNode.style.top) < 0 ||
+        parseInt(headNode.style.top) > 450
+      ) {
+        clearTimeout(time);
+        alert("game over");
+        location.reload();
+        // headNode.style.display = "none";
+      }
+      // 撞自己死
+      if (bodyNodes.length > 0) {
+        for (var i = 0; i < bodyNodes.length; i++) {
+          if (
+            headNode.style.left == bodyNodes[i].style.left &&
+            headNode.style.top == bodyNodes[i].style.top
+          ) {
+            clearTimeout(time);
+            alert("game over");
+            location.reload();
+          }
+        }
+      }
+      // 碰撞检测
+      if (
+        headNode.style.left == foodNode.style.left &&
+        headNode.style.top == foodNode.style.top
+      ) {
+        var bodyNode = createDiv("yellow");
+        var lastNode = null;
+        if (bodyNodes.length == 0) {
+          lastNode = headNode;
+        } else {
+          lastNode = bodyNodes[bodyNodes.length - 1];
+        }
+        bodyNode.value = lastNode.value;
+        switch (lastNode.value) {
+          case "左":
+            bodyNode.style.left = parseInt(lastNode.style.left) + 50 + "px";
+            bodyNode.style.top = lastNode.style.top;
+            break;
+          case "右":
+            bodyNode.style.left = parseInt(lastNode.style.left) - 50 + "px";
+            bodyNode.style.top = lastNode.style.top;
+            break;
+          case "上":
+            bodyNode.style.top = parseInt(lastNode.style.top) + 50 + "px";
+            bodyNode.style.left = lastNode.style.left;
+            break;
+          case "下":
+            bodyNode.style.top = parseInt(lastNode.style.top) - 50 + "px";
+            bodyNode.style.left = lastNode.style.left;
+            break;
+        }
+
+        bodyNodes.push(bodyNode);
+        // 食物产生
+        var px = parseInt(Math.random() * 10) * 50;
+        var py = parseInt(Math.random() * 10) * 50;
+        for (var i = 0; i < bodyNodes.length; i++) {
+          if (
+            parseInt(bodyNodes[i].style.left) == px &&
+            parseInt(bodyNodes[i].style.top) == py
+          ) {
+            px = parseInt(Math.random() * 10) * 50;
+            py = parseInt(Math.random() * 10) * 50;
+            i = -1;
+          }
+        }
+        foodNode.style.left = px + "px";
+        foodNode.style.top = py + "px";
+        score();
+      }
+    }
+
+    // 控制方向
+    function changeSpeed(times) {
+      time = setInterval(move, times);
+    }
+
+    document.onkeydown = function (e) {
+      switch (e.keyCode) {
+        case 37:
+          if (headNode.value != "右" || bodyNodes.length == 0) {
+            headNode.value = "左";
+          }
+          break;
+        case 38:
+          if (headNode.value != "下" || bodyNodes.length == 0) {
+            headNode.value = "上";
+          }
+          break;
+        case 39:
+          if (headNode.value != "左" || bodyNodes.length == 0) {
+            headNode.value = "右";
+          }
+          break;
+        case 40:
+          if (headNode.value != "上" || bodyNodes.length == 0) {
+            headNode.value = "下";
+          }
+          break;
+      }
+    };
+  </script>
+</html>
